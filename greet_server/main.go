@@ -2,8 +2,11 @@ package main
 
 import (
 	"context"
-	"fmt"
+	"flag"
 	"log"
+	"net"
+
+	"google.golang.org/grpc"
 
 	pb "go-grpc-test/greet"
 )
@@ -22,5 +25,17 @@ func (s *server) SayHello(ctx context.Context, in *pb.HelloRequest) (*pb.HelloRe
 }
 
 func main() {
-	fmt.Println("Hello world")
+	flag.Parse()
+	lis, err := net.Listen("tcp", port)
+	if err != nil {
+		log.Fatalf("failed to listen: %v", err)
+	}
+
+	s := grpc.NewServer()
+	pb.RegisterGreeterServer(s, &server{})
+	log.Printf("server listening at %v", lis.Addr())
+	if err := s.Serve(lis); err != nil {
+		log.Fatalf("failed to serve: %v", err)
+	}
+
 }
